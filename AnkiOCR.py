@@ -8,6 +8,7 @@ import pytesseract
 from os import listdir
 import time
 import csv
+import re
 
 enable_debug = False
 
@@ -20,6 +21,16 @@ name_debug_image = 'anki03'
 image_file_extension = '.JPG'
 ocr_extract_lang = 'deu'
 
+front_margin_top = 140
+front_margin_bottom = 15
+front_margin_left = 180
+front_margin_right = 40
+
+back_margin_top = 140
+back_margin_bottom = 15
+back_margin_left = 180
+back_margin_right = 40
+
 card_font_family = 'Courier'
 card_font_size = 'medium'
 
@@ -27,7 +38,7 @@ keywords_font_family = 'Courier'
 keywords_font_size = 'medium'
 keywords_color = 'orange'
 enable_colored_keywords = True
-enable_kursiv_keywords = True
+enable_italic_keywords = True
 enable_bold_keywords = True
 enable_underlined_keywords = True
 
@@ -35,7 +46,7 @@ enable_underlined_keywords = True
 print("currently using tesseract: " + str(pytesseract.get_tesseract_version()))
 
 # other languages can be installed by
-# sudo apt-get install tesseract-ocr-[language code]
+# sudo apt install tesseract-ocr-[language code]
 langs = pytesseract.get_languages(config='')
 print(f"following languages are availible:\n   {langs}" )
 
@@ -52,7 +63,7 @@ def loadKeywords():
     return temp
 
 def getCardSide():
-    # TODO
+    # TODO FlipFlop, OneSide than the Other  
     return "front"
 
 def cropImage(img, side):
@@ -60,9 +71,9 @@ def cropImage(img, side):
     width, height = card.size
     
     if side == "front":
-        cropped = card.crop((180, 140,width-40, height-15)) #TODO adjust values for crop
+        cropped = card.crop((front_margin_left, front_margin_top, width-front_margin_right, height-front_margin_bottom))
     elif side == "back":
-        cropped = card.crop((180, 140,width-40, height-15)) # TODO adjust values for crop
+        cropped = card.crop((back_margin_left, back_margin_top, width-back_margin_right, height-back_margin_bottom))
     else:
         print("[ERROR] No Side")
     return cropped
@@ -74,40 +85,52 @@ def extractOCR(img):
 def styleData(data):
     data = data.replace('\n', "<br>")
     data = f'<span style="font-size:{card_font_size};font-family:{card_font_family}">' + data + '</span>'
+    if enable_debug: print(data)
     return data
 
 def highlightKeywords(data):
-    # kursiv <em></em>
-    #for keys in keywords:
+    for key in keywords:
+        searchPhrase = re.search(key, data, re.IGNORECASE)
         
-        #for key in range (0,len(keys)):
-            #if key in data.to_lowercase():
-                #print("success")
-            #else:
-                #print("Nothing found")
-    if enable_colored_keywords: pass
-    if enable_kursiv_keywords: pass
-    if enable_bold_keywords: pass
-    if enable_underlined_keywords: pass
+        if searchPhrase: # check if keyword is present in data
+            origKey = searchPhrase.group() # save the original key for later
+            
+            if enable_debug:
+                print("Found keyword")
+                print(f"Original Keyword Position: {searchPhrase.span()}")
+                print(f"Original Keyword: {origKey}")
+                
+            if enable_colored_keywords: data = re.sub(key, f'<span style="font-color:{keywords_color}"{key}</span>', data, flags=re.IGNORECASE)
+            if enable_italic_keywords: data = re.sub(key, f'<em>{key}</em>', data, flags=re.IGNORECASE)
+            if enable_bold_keywords: data = re.sub(key, f'<b>{key}</b>', data, flags=re.IGNORECASE)
+            if enable_underlined_keywords: data = re.sub(key, f'<u>{key}</u>', data, flags=re.IGNORECASE)
+            
+            data = re.sub(key, origKey, data, flags=re.IGNORECASE) # insert the original keyword back again
+            
+    if enable_debug: print(data)
+    
     return data
 
-def writeTSVFile(data):
+def writeTSVFile(data, cardID, cardSideStrategy):
+    #with open('./output.csv', 'w') as file:
+    #    file.write(data)
     pass
 
 # CHECK IF OCR CODE IS INCLUDED IN INSTALLED LANG's. NEEDS TO BE PRESENT FOR OCR!
 if ocr_extract_lang in langs:
+    
     keywords = loadKeywords()
-
+    
+    cardID = 1
+    cardSideStrategy = "FlipFlop"
+    
     if enable_debug: begin = time.time()
-    ##data.append(styleData(extractOCR(cropImage(src_image_path+files[1], getCardSide()))))
-    #data = styleData(extractOCR(cropImage(src_image_path+files[1], getCardSide())))
-    data = highlightKeywords(extractOCR(cropImage(src_image_path+files[1], getCardSide())))
-    #with open('./output.csv', 'w') as file:
-    #    file.write(data)
+    
+    writeTSVFile(styleData(highlightKeywords(extractOCR(cropImage(src_image_path+files[cardID], getCardSide())))), cardID, cardSideStrategy)
+    
     if enable_debug:
         end = time.time()
         print(f"Execution of one image cycle: {end-begin:.2f}s")
-        print(data)
 
     print("Jobs are done")
     
