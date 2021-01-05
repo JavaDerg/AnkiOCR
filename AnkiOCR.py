@@ -9,20 +9,18 @@ from os import listdir
 import time
 import csv
 import re
+import pandas as pd
 
 enable_debug = False
 
+output_file = './output.csv'
 src_config_file = './config.txt'
 src_image_path = './img/'
 src_keywords_path = './keywords/'
-orig_debug_path = './debug/orig/'
-edit_debug_path = './debug/edit/'
-name_debug_image = 'anki03'
-image_file_extension = '.JPG'
 ocr_extract_lang = 'deu'
 
-cardSideStrategy = 'OneByOne' # FlipFlop or OnyByOne
-firstCardFront = True # is the first card / batch the front face?
+card_Side_Strategy = 'OneByOne' # FlipFlop or OnyByOne
+is_First_Card_Front = True # is the first card / batch the front face?
 
 front_margin_top = 140
 front_margin_bottom = 15
@@ -70,38 +68,38 @@ def loadKeywords():
 
 def getCardSide(cardid):
     # TODO FlipFlop, OneSide than the Other
-    if cardSideStrategy == "FlipFlop":
-        if firstCardFront:
+    if card_Side_Strategy == "FlipFlop":
+        if is_First_Card_Front:
             if cardid%2 == 0:
-                if enable_debug: print(f'[INFO] {cardid} is front with "{cardSideStrategy}" strategy')
+                if enable_debug: print(f'[INFO] {cardid} is front with "{card_Side_Strategy}" strategy')
                 return "front"
             else:
-                if enable_debug: print(f'[INFO] {cardid} is back with "{cardSideStrategy}" strategy')
+                if enable_debug: print(f'[INFO] {cardid} is back with "{card_Side_Strategy}" strategy')
                 return "back"
         else:
             if cardid%2 != 0:
-                if enable_debug: print(f'[INFO] {cardid} is front with "{cardSideStrategy}" strategy')
+                if enable_debug: print(f'[INFO] {cardid} is front with "{card_Side_Strategy}" strategy')
                 return "front"
             else:
-                if enable_debug: print(f'[INFO] {cardid} is back with "{cardSideStrategy}" strategy')
+                if enable_debug: print(f'[INFO] {cardid} is back with "{card_Side_Strategy}" strategy')
                 return "back"
         
-    elif cardSideStrategy == "OneByOne":
+    elif card_Side_Strategy == "OneByOne":
         half = totalNumOfImages*0.5
         
-        if firstCardFront:
+        if is_First_Card_Front:
             if cardid < half:
-                if enable_debug: print(f'[INFO] {cardid} is front with "{cardSideStrategy}" strategy')
+                if enable_debug: print(f'[INFO] {cardid} is front with "{card_Side_Strategy}" strategy')
                 return "front"
             else:
-                if enable_debug: print(f'[INFO] {cardid} is back with "{cardSideStrategy}" strategy')
+                if enable_debug: print(f'[INFO] {cardid} is back with "{card_Side_Strategy}" strategy')
                 return "back"
         else:
             if cardid >= half:
-                if enable_debug: print(f'[INFO] {cardid} is front with "{cardSideStrategy}" strategy')
+                if enable_debug: print(f'[INFO] {cardid} is front with "{card_Side_Strategy}" strategy')
                 return "front"
             else:
-                if enable_debug: print(f'[INFO] {cardid} is back with "{cardSideStrategy}" strategy')
+                if enable_debug: print(f'[INFO] {cardid} is back with "{card_Side_Strategy}" strategy')
                 return "back"
 
 def cropImage(img, side):
@@ -150,11 +148,10 @@ def highlightKeywords(data):
     
     return data
 
-def writeTSVFile(data, cardid, cardSideStrategy):
-    if enable_debug: print(f'[DEBUG] data: \n{data}\nfrom card index : {cardid}    with: {cardSideStrategy}')
-    #with open('./output.csv', 'w') as file:
-    #    file.write(data)
-    pass
+def addToDataFrame(data, cardid, cardSide):
+    if enable_debug: print(f'[DEBUG] data: \n{data}\nfrom card index : {cardid}    with: {cardSide}')
+    output.at[cardid, cardSide] = data
+    
 
 # CHECK IF OCR CODE IS INCLUDED IN INSTALLED LANG's. NEEDS TO BE PRESENT FOR OCR!
 if ocr_extract_lang in langs:
@@ -164,16 +161,26 @@ if ocr_extract_lang in langs:
         keywords = loadKeywords()
     
         cardID = 2 # Zero based counting!
-    
-    
+        
+        # pre-allocate memory for all images
+        pattern = ["",""]
+        preAlloc = [pattern] * int(totalNumOfImages*0.5)
+        output = pd.DataFrame(preAlloc, columns=["front", "back"])
+        
+        # main working cycle
         if enable_debug: begin = time.time()
     
-        writeTSVFile(styleData(highlightKeywords(extractOCR(cropImage(src_image_path+files[cardID], getCardSide(cardID))))), cardID, cardSideStrategy)
+        cardSide = getCardSide(cardID)
+        addToDataFrame(styleData(highlightKeywords(extractOCR(cropImage(src_image_path+files[cardID], cardSide)))), cardID, cardSide)
     
         if enable_debug:
             end = time.time()
             print(f'[INFO] Execution of one image cycle: {end-begin:.2f}s')
-
+        
+        # write output to file
+        if enable_debug: print(output)
+        output.to_csv(output_file, sep='\t', header=False, index=False, encoding='utf16', quoting=csv.QUOTE_NONE)
+        
         print('[SUCCESS] Jobs are done')
     
 else:
