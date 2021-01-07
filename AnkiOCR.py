@@ -1,3 +1,6 @@
+################
+#    IMPORT
+################
 try:
     from PIL import Image, ImageDraw
     print('[SUCCESS] Imported Pillow')
@@ -10,53 +13,120 @@ import time
 import csv
 import re
 import pandas as pd
+import configparser
+from pathlib import Path
 
-enable_debug = False
+################
+#    VARIABLES
+################
 
-output_file = './output.csv'
-src_config_file = './config.txt'
-src_image_path = './img/'
-src_keywords_path = './keywords/'
-ocr_extract_lang = 'deu'
-
-card_Side_Strategy = 'OneByOne' # FlipFlop or OnyByOne
-is_First_Card_Front = True # is the first card / batch the front face?
-
-front_margin_top = 140
-front_margin_bottom = 15
-front_margin_left = 180
-front_margin_right = 40
-
-back_margin_top = 140
-back_margin_bottom = 15
-back_margin_left = 180
-back_margin_right = 40
-
-card_font_family = 'Courier'
-card_font_size = 'medium'
-
-keywords_font_family = 'Courier'
-keywords_font_size = 'medium'
-keywords_color = 'orange'
-enable_colored_keywords = True
-enable_italic_keywords = True
-enable_bold_keywords = True
-enable_underlined_keywords = True
+config_file_path = './config.ini'
+configPath = Path(config_file_path)
+config = configparser.ConfigParser()
 
 
-print('[INFO] currently using tesseract: ' + str(pytesseract.get_tesseract_version()))
+def writeConfig():
+    print('[INFO] writing config file...')
+    config['DEBUG'] = {'enable_debug' : 'False'}
+    config['BASIC'] = {'output_file' : './output.csv',
+                       'src_config_file' : './config.txt',
+                       'src_image_path' : './img/',
+                       'src_keywords_path' : './keywords/',
+                       'ocr_extract_lang' : 'deu'}
+    config['CARD STRATEGY'] = {'card_Side_Strategy' : 'OneByOne',
+                               'is_First_Card_Front' : 'True'}
+    config['CROPPING FRONT'] = {'front_margin_top' : '140',
+                                'front_margin_bottom' : '15',
+                                'front_margin_left' : '180',
+                                'front_margin_right' : '40'}
+    config['CROPPING BACK'] = {'back_margin_top' : '140',
+                               'back_margin_bottom' : '15',
+                               'back_margin_left' : '180',
+                               'back_margin_right' : '40'}
+    config['CARD STYLING'] = {'card_font_family' : 'Courier',
+                              'card_font_size' : 'medium'}
+    config['KEYWORD STYLING'] = {'keywords_font_family' : 'Courier',
+                                 'keywords_font_size' : 'medium',
+                                 'keywords_color' : 'orange',
+                                 'enable_colored_keywords' : 'True',
+                                 'enable_italic_keywords' : 'True',
+                                 'enable_bold_keywords' : 'True',
+                                 'enable_underlined_keywords' : 'True'}
+    
+    with open(config_file_path, 'w') as configfile:
+        config.write(configfile)
+    print('[SUCCESS] config file written!')
+        
+def readConfig():
+    print('[INFO] reading in config file...')
+    config.read(config_file_path)
+    
+    #    DEBUG
+    global enable_debug
+    enable_debug = config['DEBUG'].getboolean('enable_debug')
 
-# other languages can be installed by
-# sudo apt install tesseract-ocr-[language code]
-langs = pytesseract.get_languages(config='')
-print(f'[INFO] following languages are availible:\n   {langs}')
+    #    BASIC
+    global output_file
+    output_file = config['BASIC']['output_file']
+    global src_config_file
+    src_config_file = config['BASIC']['src_config_file']
+    global src_image_path
+    src_image_path = config['BASIC']['src_image_path']
+    global src_keywords_path
+    src_keywords_path = config['BASIC']['src_keywords_path']
+    global ocr_extract_lang
+    ocr_extract_lang = config['BASIC']['ocr_extract_lang']
 
-files = listdir(path=src_image_path)
-totalNumOfImages = len(files)
-if enable_debug:
-    print(f'[INFO] {totalNumOfImages} image files are present in "{src_image_path}"')
-    print(f'[INFO] Following files are present:\n    {files}')
+    #    CARD STRATEGY
+    global card_Side_Strategy
+    card_Side_Strategy = config['CARD STRATEGY']['card_Side_Strategy']
+    global is_First_Card_Front
+    is_First_Card_Front = config['CARD STRATEGY'].getboolean('is_First_Card_Front')
 
+    #    CROPPING FRONT
+    global front_margin_top
+    front_margin_top = int(config['CROPPING FRONT']['front_margin_top'])
+    global front_margin_bottom
+    front_margin_bottom = int(config['CROPPING FRONT']['front_margin_bottom'])
+    global front_margin_left
+    front_margin_left = int(config['CROPPING FRONT']['front_margin_left'])
+    global front_margin_right
+    front_margin_right = int(config['CROPPING FRONT']['front_margin_right'])
+
+    #    CROPPING BACK
+    global back_margin_top
+    back_margin_top = int(config['CROPPING BACK']['back_margin_top'])
+    global back_margin_bottom
+    back_margin_bottom = int(config['CROPPING BACK']['back_margin_bottom'])
+    global back_margin_left
+    back_margin_left = int(config['CROPPING BACK']['back_margin_left'])
+    global back_margin_right
+    back_margin_right = int(config['CROPPING BACK']['back_margin_right'])
+
+    #    CARD STYLING
+    global card_font_family
+    card_font_family = config['CARD STYLING']['card_font_family']
+    global card_font_size
+    card_font_size = config['CARD STYLING']['card_font_size']
+
+    #    KEYWORD STYLING
+    global keywords_font_family
+    keywords_font_family = config['KEYWORD STYLING']['keywords_font_family']
+    global keywords_font_size
+    keywords_font_size = config['KEYWORD STYLING']['keywords_font_size']
+    global keywords_color
+    keywords_color = config['KEYWORD STYLING']['keywords_color']
+    global enable_colored_keywords
+    enable_colored_keywords = config['KEYWORD STYLING'].getboolean('enable_colored_keywords')
+    global enable_italic_keywords
+    enable_italic_keywords = config['KEYWORD STYLING'].getboolean('enable_italic_keywords')
+    global enable_bold_keywords
+    enable_bold_keywords = config['KEYWORD STYLING'].getboolean('enable_bold_keywords')
+    global enable_underlined_keywords
+    enable_underlined_keywords = config['KEYWORD STYLING'].getboolean('enable_underlined_keywords')
+    
+    print('[SUCCESS] config file read finished!')
+    
 def loadKeywords():
     temp = []
     with open(f'{src_keywords_path}{ocr_extract_lang}.csv',encoding='utf16') as csvfile:
@@ -67,7 +137,6 @@ def loadKeywords():
     return temp
 
 def getCardSide(cardid):
-    # TODO FlipFlop, OneSide than the Other
     if card_Side_Strategy == "FlipFlop":
         if is_First_Card_Front:
             if cardid%2 == 0:
@@ -152,10 +221,41 @@ def addToDataFrame(data, cardid, cardSide):
     if enable_debug: print(f'[DEBUG] data: \n{data}\nfrom card index : {cardid}    with: {cardSide}')
     output.at[cardid, cardSide] = data
     
+    
+
+################
+#    SETUP
+################
+
+# create config file if not already present
+if not configPath.exists():
+    print("No config found")
+    writeConfig()
+else:
+    readConfig()
+
+# pytesseract version
+print('[INFO] currently using tesseract: ' + str(pytesseract.get_tesseract_version()))
+
+# other languages can be installed by
+# sudo apt install tesseract-ocr-[language code]
+langs = pytesseract.get_languages(config='')
+print(f'[INFO] following languages are availible:\n   {langs}')
+
+# get a list of all files and the total count 
+files = listdir(path=src_image_path)
+totalNumOfImages = len(files)
+if enable_debug:
+    print(f'[INFO] {totalNumOfImages} image files are present in "{src_image_path}"')
+    print(f'[INFO] Following files are present:\n    {files}')
+        
+################
+#    LOOP
+################ 
 
 # CHECK IF OCR CODE IS INCLUDED IN INSTALLED LANG's. NEEDS TO BE PRESENT FOR OCR!
 if ocr_extract_lang in langs:
-    if len(files)%2 != 0:
+    if totalNumOfImages%2 != 0:
         print('[ERROR] One Front or Back Card is missing!\nPlease check you Input Folder!')
     else:
         keywords = loadKeywords()
