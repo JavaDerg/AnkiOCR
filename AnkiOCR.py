@@ -22,8 +22,8 @@ from pathlib import Path
 
 config_file_path = './config.ini'
 configPath = Path(config_file_path)
-config = configparser.ConfigParser()
-
+config = configparser.ConfigParser(allow_no_value=True)
+config.optionxform = str # disable lowercase writing
 
 def writeConfig():
     print('[INFO] writing config file...')
@@ -32,8 +32,8 @@ def writeConfig():
                        'src_config_file' : './config.txt',
                        'src_image_path' : './img/',
                        'src_keywords_path' : './keywords/',
-                       'ocr_extract_lang' : 'deu'}
-    config['CARD STRATEGY'] = {'card_Side_Strategy' : 'FlipFlop',
+                       '; Do not forget to install you Pytesseract-Lang-Package!':None, 'ocr_extract_lang' : 'deu'}
+    config['CARD STRATEGY'] = {'; "OneByOne" or "FlipFlop"':None, 'card_Side_Strategy' : 'FlipFlop', 
                                'is_First_Card_Front' : 'True'}
     config['CROPPING FRONT'] = {'front_margin_top' : '0',
                                 'front_margin_bottom' : '0',
@@ -43,15 +43,15 @@ def writeConfig():
                                'back_margin_bottom' : '0',
                                'back_margin_left' : '0',
                                'back_margin_right' : '0'}
-    config['CARD STYLING'] = {'card_font_family' : 'Courier',
-                              'card_font_size' : 'medium'}
-    config['KEYWORD STYLING'] = {'keywords_font_family' : 'Courier',
-                                 'keywords_font_size' : 'medium',
-                                 'keywords_color' : 'orange',
+    config['CARD STYLING'] = {'; keep the installed fonts in mind!':None, 'card_font_family' : 'Arial',
+                              '; xx-small x-small small medium large x-large xx-large':None, 'card_font_size' : 'medium'}
+    config['KEYWORD STYLING'] = {'; keep the installed fonts in mind!':None, 'keywords_font_family' : 'Arial',
+                                 '; xx-small x-small small medium large x-large xx-large':None, 'keywords_font_size' : 'medium',
+                                 '; valid css colors as name or hex value':None,'keywords_color' : 'orange',
                                  'enable_colored_keywords' : 'True',
-                                 'enable_italic_keywords' : 'True',
+                                 'enable_italic_keywords' : 'False',
                                  'enable_bold_keywords' : 'True',
-                                 'enable_underlined_keywords' : 'True'}
+                                 'enable_underlined_keywords' : 'False'}
     
     with open(config_file_path, 'w') as configfile:
         config.write(configfile)
@@ -206,7 +206,7 @@ def highlightKeywords(data):
                 print(f'[DEBUG] Original Keyword Position: {searchPhrase.span()}')
                 print(f'[DEBUG] Original Keyword: "{origKey}"')
                 
-            if enable_colored_keywords: data = re.sub(key, f'<span style="font-color:{keywords_color}"{key}</span>', data, flags=re.IGNORECASE)
+            if enable_colored_keywords: data = re.sub(key, f'<span style="color:{keywords_color}"{key}</span>', data, flags=re.IGNORECASE)
             if enable_italic_keywords: data = re.sub(key, f'<em>{key}</em>', data, flags=re.IGNORECASE)
             if enable_bold_keywords: data = re.sub(key, f'<b>{key}</b>', data, flags=re.IGNORECASE)
             if enable_underlined_keywords: data = re.sub(key, f'<u>{key}</u>', data, flags=re.IGNORECASE)
@@ -265,8 +265,7 @@ def numericalSort(value):
 if not configPath.exists():
     print("No config found")
     writeConfig()
-else:
-    readConfig()
+readConfig()
 
 # pytesseract version
 print('[INFO] currently using tesseract: ' + str(pytesseract.get_tesseract_version()))
