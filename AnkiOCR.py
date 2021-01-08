@@ -33,7 +33,7 @@ def writeConfig():
                        'src_image_path' : './img/',
                        'src_keywords_path' : './keywords/',
                        'ocr_extract_lang' : 'deu'}
-    config['CARD STRATEGY'] = {'card_Side_Strategy' : 'OneByOne',
+    config['CARD STRATEGY'] = {'card_Side_Strategy' : 'FlipFlop',
                                'is_First_Card_Front' : 'True'}
     config['CROPPING FRONT'] = {'front_margin_top' : '140',
                                 'front_margin_bottom' : '15',
@@ -217,11 +217,45 @@ def highlightKeywords(data):
     
     return data
 
-def addToDataFrame(data, cardid, cardSide):
-    if enable_debug: print(f'[DEBUG] data: \n{data}\nfrom card index : {cardid}    with: {cardSide}')
-    output.at[cardid, cardSide] = data
+def addToDataFrame(data, cardid, cardSide, row):
+    if enable_debug: print(f'[DEBUG] data: \n{data}\nfrom card index : {cardid}    with: {cardSide} at row: {row}') 
     
+    if card_Side_Strategy == "FlipFlop":
+        if cardid%2 == 0:
+            output.at[row, cardSide] = data
+            return row
+        else:
+            output.at[row, cardSide] = data
+            return row + 1
+        
+    if card_Side_Strategy == "OneByOne":
+        half = totalNumOfImages*0.5
+        if cardid <= half:
+            output.at[row, cardSide] = data
+            return row + 1
+        else:
+            index = rowCounter-half
+            output.at[index, cardSide] = data
+            return row + 1
+
+def numericalSort(value):
+    """
+        extracts values to sort on a numerical basis
+
+        in: string 'file-name' of the image
+        
+        out: list of tokens
+    """
     
+    if enable_debug: print(f'[DEBUG] regex: {value}')
+    parts = numbers.split(value)
+    
+    if enable_debug: print(f'[DEBUG] parts: {parts}')
+    parts[1::2] = map(int, parts[1::2])
+    
+    if enable_debug: print(f'[DEBUG] mapped parts: {parts}')
+    return parts
+
 
 ################
 #    SETUP
@@ -242,8 +276,9 @@ print('[INFO] currently using tesseract: ' + str(pytesseract.get_tesseract_versi
 langs = pytesseract.get_languages(config='')
 print(f'[INFO] following languages are availible:\n   {langs}')
 
-# get a list of all files and the total count 
-files = listdir(path=src_image_path)
+# get a numerical sorted list of all files and the total count
+numbers = re.compile(r'(\d+)') # matches numerical token with multiple digits
+files = sorted(listdir(path=src_image_path), key=numericalSort)
 totalNumOfImages = len(files)
 if enable_debug:
     print(f'[INFO] {totalNumOfImages} image files are present in "{src_image_path}"')
@@ -260,22 +295,28 @@ if ocr_extract_lang in langs:
     else:
         keywords = loadKeywords()
     
-        cardID = 2 # Zero based counting!
+        cardID = 0 # Zero based counting!
+        
+        rowCounter = 0
         
         # pre-allocate memory for all images
         pattern = ["",""]
         preAlloc = [pattern] * int(totalNumOfImages*0.5)
         output = pd.DataFrame(preAlloc, columns=["front", "back"])
         
-        # main working cycle
-        if enable_debug: begin = time.time()
+        while cardID < totalNumOfImages:
+            # main working cycle
+            if enable_debug: begin = time.time()
     
-        cardSide = getCardSide(cardID)
-        addToDataFrame(styleData(highlightKeywords(extractOCR(cropImage(src_image_path+files[cardID], cardSide)))), cardID, cardSide)
+            cardSide = getCardSide(cardID)
+            rowCounter = addToDataFrame(styleData(highlightKeywords(extractOCR(cropImage(src_image_path+files[cardID], cardSide)))), cardID, cardSide, rowCounter)
     
-        if enable_debug:
-            end = time.time()
-            print(f'[INFO] Execution of one image cycle: {end-begin:.2f}s')
+            if enable_debug:
+                end = time.time()
+                print(f'[INFO] Execution of one image cycle: {end-begin:.2f}s')
+            
+            print(f'[INFO] Card {cardID} has been processed!')
+            cardID += 1
         
         # write output to file
         if enable_debug: print(output)
