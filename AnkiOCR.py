@@ -35,14 +35,14 @@ def writeConfig():
                        'ocr_extract_lang' : 'deu'}
     config['CARD STRATEGY'] = {'card_Side_Strategy' : 'FlipFlop',
                                'is_First_Card_Front' : 'True'}
-    config['CROPPING FRONT'] = {'front_margin_top' : '140',
-                                'front_margin_bottom' : '15',
-                                'front_margin_left' : '180',
-                                'front_margin_right' : '40'}
-    config['CROPPING BACK'] = {'back_margin_top' : '140',
-                               'back_margin_bottom' : '15',
-                               'back_margin_left' : '180',
-                               'back_margin_right' : '40'}
+    config['CROPPING FRONT'] = {'front_margin_top' : '0',
+                                'front_margin_bottom' : '0',
+                                'front_margin_left' : '0',
+                                'front_margin_right' : '0'}
+    config['CROPPING BACK'] = {'back_margin_top' : '0',
+                               'back_margin_bottom' : '0',
+                               'back_margin_left' : '0',
+                               'back_margin_right' : '0'}
     config['CARD STYLING'] = {'card_font_family' : 'Courier',
                               'card_font_size' : 'medium'}
     config['KEYWORD STYLING'] = {'keywords_font_family' : 'Courier',
