@@ -26,6 +26,13 @@ config = configparser.ConfigParser(allow_no_value=True)
 config.optionxform = str # disable lowercase writing
 
 def writeConfig():
+    """
+        writes the config file to the config directory.
+
+        in: void
+        
+        out: void
+    """
     print('[INFO] writing config file...')
     config['DEBUG'] = {'enable_debug' : 'False'}
     config['BASIC'] = {'output_file' : './output.csv',
@@ -58,6 +65,13 @@ def writeConfig():
     print('[SUCCESS] config file written!')
         
 def readConfig():
+    """
+        reads the config file from the config directory.
+
+        in: void
+        
+        out: void
+    """
     print('[INFO] reading in config file...')
     config.read(config_file_path)
     
@@ -128,6 +142,14 @@ def readConfig():
     print('[SUCCESS] config file read finished!')
     
 def loadKeywords():
+    """
+        loads the keywords from disk and saves it
+        into an array in memory. 
+
+        in: void
+        
+        out: array keywords
+    """
     temp = []
     with open(f'{src_keywords_path}{ocr_extract_lang}.csv',encoding='utf16') as csvfile:
         wordslist = csv.reader(csvfile)
@@ -137,6 +159,18 @@ def loadKeywords():
     return temp
 
 def getCardSide(cardid):
+    """
+        figures out what the card side is based
+        on the card strategy and card id. card
+        strategy may changed in config.ini.
+        
+        Returns ERROR and crashes programm if no
+        cardside could be determinated.
+
+        in: int cardid
+        
+        out: str cardSide
+    """
     if card_Side_Strategy == "FlipFlop":
         if is_First_Card_Front:
             if cardid%2 == 0:
@@ -172,6 +206,15 @@ def getCardSide(cardid):
                 return "back"
 
 def cropImage(img, side):
+    """
+        crops away unneeded pixel of the image, based on
+        the card side.
+
+        in: array img
+            str side
+        
+        out: array cropped image
+    """
     card = Image.open(img)
     width, height = card.size
     
@@ -184,17 +227,44 @@ def cropImage(img, side):
     return cropped
 
 def extractOCR(img):
+    """
+        extracts text from a given input image with
+        Pytesseract. There is a possiblity to show
+        the raw text output. Please look into the
+        Pytesseract documentation for that.
+
+        in: array img
+        
+        out: array data
+    """
     data = pytesseract.image_to_string(img, ocr_extract_lang)
     if enable_debug: print(f'[DEBUG] Extracted data: {data}')
     return data[:-1] # crop away the note sign at the end
 
 def styleData(data):
+    """
+        formats the whole text-data with line-breaks, font-size and
+        font-family.
+
+        in: array data
+        
+        out: array data
+    """
     data = data.replace('\n', '<br>')
     data = f'<span style="font-size:{card_font_size};font-family:{card_font_family}">' + data + '</span>'
     if enable_debug: print(f'[DEBUG] Styled data: {data}')
     return data
 
 def highlightKeywords(data):
+    """
+        highlight keywords specified in {lang_code}_keywords with
+        the ability to toggle certain styling options via the config
+        file.
+
+        in: array data
+        
+        out: array data
+    """
     for key in keywords:
         searchPhrase = re.search(key, data, re.IGNORECASE)
         
@@ -218,6 +288,17 @@ def highlightKeywords(data):
     return data
 
 def addToDataFrame(data, cardid, cardSide, row):
+    """
+        writes the data at the corresponding index into
+        the pandas dataframe.
+
+        in: array data
+            int cardid
+            str cardSide
+            int row
+        
+        out: int row
+    """
     if enable_debug: print(f'[DEBUG] data: \n{data}\nfrom card index : {cardid}    with: {cardSide} at row: {row}') 
     
     if card_Side_Strategy == "FlipFlop":
@@ -240,11 +321,11 @@ def addToDataFrame(data, cardid, cardSide, row):
 
 def numericalSort(value):
     """
-        extracts values to sort on a numerical basis
+        extracts tokens to sort on a numerical basis.
 
         in: string 'file-name' of the image
         
-        out: list of tokens
+        out: array
     """
     
     if enable_debug: print(f'[DEBUG] regex: {value}')
