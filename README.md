@@ -1,2 +1,33 @@
 # AnkiOCR
-Create an Anki-Learn-Deck fully automatically from existing Cards with Optical-Character-Recognition.
+## Introduction
+Create an [Anki](https://github.com/ankitects/anki "Anki")-Learn-Deck fully automatic from existing cards with Optical-Character-Recognition.
+## Getting Started
+
+### Pre-requisites
+- Python 3.7+
+- Pytesseract with your needed Language Package`sudo apt install tesseract-ocr-[language code]`
+- Anki-Desktop
+
+### Installation
+- Go to the [Realease Section](https://github.com/Hugo54x/AnkiOCR/releases "Realease Section") and grab a copy of this project.
+- Extract the archive and open a command prompt in the folder (`Shift + Right Click`on Windows). 
+- Run `pip3 install requirements.txt`
+
+### Usage
+- Put your `.jpg` Files into `./img/`
+- Run `python3 ./AnkiOCR.py`
+- Import `./output.csv` into Anki-Desktop
+
+## FAQ
+Q: Can I create my own keywords list?
+A: Sure, follow the guide in the [Wiki](https://github.com/hugo54x/AnkiOCR/ "Wiki").
+
+Q: Can I use AnkiOCR with my existing hand-written cards?
+A: At the moment not.
+
+Q: Will there be Multi-Threading/Processing?
+A: At the moment Pytesseract is using multiple cores. It has to be measured, if for the other parts of the code the speed improvements are justifying the additional work.
+## Contact
+Check out my [Github Proflie](https://github.com/Hugo54x "Github Proflie").
+## License
+This project is licensed under a custom license. See [LICENSE.md](https://github.com/Hugo54x/AnkiOCR/blob/main/LICENSE.md "LICENSE.md") for more infos.
