@@ -9,7 +9,7 @@ Create an [Anki](https://github.com/ankitects/anki "Anki")-Learn-Deck fully auto
 - Anki-Desktop
 
 ### Installation
-- Go to the [Realease Section](https://github.com/Hugo54x/AnkiOCR/releases "Realease Section") and grab a copy of this project.
+- Go to the [Release Section](https://github.com/Hugo54x/AnkiOCR/releases "Release Section") and grab a copy of this project.
 - Extract the archive and open a command prompt in the folder (`Shift + Right Click`on Windows). 
 - Run `pip3 install requirements.txt`
 
