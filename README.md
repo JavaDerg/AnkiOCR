@@ -20,7 +20,7 @@ Create an [Anki](https://github.com/ankitects/anki "Anki")-Learn-Deck fully auto
 
 ## FAQ
 Q: Can I create my own keywords list?
-A: Sure, follow the guide in the [Wiki](https://github.com/hugo54x/AnkiOCR/ "Wiki").
+A: Sure, follow the guide in the [Wiki](https://github.com/hugo54x/AnkiOCR/wiki/ "Wiki").
 
 Q: Can I use AnkiOCR with my existing hand-written cards?
 A: At the moment not.
