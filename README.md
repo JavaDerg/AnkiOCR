@@ -1,4 +1,7 @@
 # AnkiOCR
+
+<a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
+
 ## Introduction
 Create an [Anki](https://github.com/ankitects/anki "Anki")-Learn-Deck fully automatic from existing cards with Optical-Character-Recognition.
 ## Getting Started
