@@ -151,7 +151,7 @@ def loadKeywords():
         out: array keywords
     """
     temp = []
-    with open(f'{src_keywords_path}{ocr_extract_lang}.csv',encoding='utf16') as csvfile:
+    with open(f'{src_keywords_path}{ocr_extract_lang}.csv',encoding='utf8') as csvfile:
         wordslist = csv.reader(csvfile)
         for key in wordslist:
             temp.append(key[0]) # no double array problem
@@ -400,7 +400,7 @@ if ocr_extract_lang in langs:
         
         # write output to file
         if enable_debug: print(output)
-        output.to_csv(output_file, sep='\t', header=False, index=False, encoding='utf16', quoting=csv.QUOTE_NONE)
+        output.to_csv(output_file, sep='\t', header=False, index=False, encoding='utf8', quoting=csv.QUOTE_NONE)
         
         print('[SUCCESS] Jobs are done')
     
